@@ -52,7 +52,7 @@ sudo apt-get install libqalculate-dev
 ### 3. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/tui-plotter.git
+git clone https://github.com/test295804367/tui-plotter.git
 cd tui-plotter
 ```
 
@@ -70,6 +70,12 @@ After the project has been successfully built, you can run it with:
 
 ```bash
 cargo run --release
+```
+
+Or you can run it directly with:
+
+```bash
+./target/release/tui-plotter
 ```
 
 ## Usage
