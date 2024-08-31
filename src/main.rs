@@ -2,7 +2,7 @@ mod tui;
 mod libqalculate;
 
 use std::io;
-use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent};
+use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
 use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 use ratatui::backend::CrosstermBackend;
@@ -48,9 +48,16 @@ fn run_app(
     loop {
         terminal.draw(|f| {
             let size = f.size();
+            let instructions_height = if app.show_instructions { 10 } else { 0 }; // Increased by 2 lines
+            let settings_height = 4; // Increased by 2 lines
+
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(60), Constraint::Percentage(20), Constraint::Percentage(20)].as_ref())
+                .constraints([
+                    Constraint::Min(size.height - (instructions_height + settings_height) as u16),
+                    Constraint::Length(instructions_height),
+                    Constraint::Length(settings_height),
+                ].as_ref())
                 .split(size);
 
             let block = Block::default().borders(Borders::ALL);
@@ -88,17 +95,17 @@ fn run_app(
                     .block(Block::default().borders(Borders::ALL).title("Instructions"));
 
                 f.render_widget(paragraph, chunks[1]);
-
-                let settings = vec![
-                    Spans::from(Span::raw(format!("Amplitude: {:.2}", app.amplitude))),
-                    Spans::from(Span::raw(format!("Frequency: {:.2}", app.frequency))),
-                ];
-
-                let settings_paragraph = Paragraph::new(settings)
-                    .block(Block::default().borders(Borders::ALL).title("Settings"));
-
-                f.render_widget(settings_paragraph, chunks[2]);
             }
+
+            let settings = vec![
+                Spans::from(Span::raw(format!("Amplitude: {:.2}", app.amplitude))),
+                Spans::from(Span::raw(format!("Frequency: {:.2}", app.frequency))),
+            ];
+
+            let settings_paragraph = Paragraph::new(settings)
+                .block(Block::default().borders(Borders::ALL).title("Settings"));
+
+            f.render_widget(settings_paragraph, chunks[2]);
         })?;
 
         if let Event::Key(key) = event::read()? {
