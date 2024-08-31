@@ -1,5 +1,7 @@
 # TUI Plotter
 
+![TUI Plotter Screenshot](assets/examples/screenshot.png)
+
 This is a terminal-based interactive plotting program inspired by Desmos, built with Rust and the `ratatui` and `crossterm` libraries. It allows you to plot various mathematical functions, adjust their parameters interactively, and view the results in real-time.
 
 ## Features
