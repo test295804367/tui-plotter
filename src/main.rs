@@ -121,6 +121,7 @@ fn run_app(
             match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => return Ok(()),
                 KeyCode::Char('f') => app.toggle_menu(),
+                KeyCode::Char('h') => app.toggle_instructions(), // Toggle instructions visibility
                 KeyCode::Up => {
                     if app.show_menu {
                         app.menu_up();

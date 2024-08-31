@@ -40,6 +40,10 @@ impl App {
         self.show_menu = !self.show_menu;
     }
 
+    pub fn toggle_instructions(&mut self) {
+        self.show_instructions = !self.show_instructions;
+    }
+
     pub fn menu_up(&mut self) {
         let i = match self.menu_state.selected() {
             Some(i) => {
