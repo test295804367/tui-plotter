@@ -5,6 +5,7 @@ pub struct App {
     pub functions: Vec<Function>,
     pub amplitude: f64,
     pub frequency: f64,
+    pub show_instructions: bool,  // Add this field
 }
 
 impl App {
@@ -13,6 +14,7 @@ impl App {
             functions: Vec::new(),
             amplitude: 1.0,
             frequency: 1.0,
+            show_instructions: true,  // Instructions shown by default
         }
     }
 

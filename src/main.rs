@@ -72,40 +72,44 @@ fn run_app(
 
             f.render_widget(chart, chunks[0]);
 
-            let instructions = vec![
-                Spans::from(Span::raw("Press 's' to add a sine wave.")),
-                Spans::from(Span::raw("Press 'c' to add a cosine wave.")),
-                Spans::from(Span::raw("Press 'p' to add a parametric function.")),
-                Spans::from(Span::raw("Press 'i' to add an inequality.")),
-                Spans::from(Span::raw("Press 'r' to reset the graph.")),
-                Spans::from(Span::raw("Use arrows to adjust amplitude/frequency.")),
-                Spans::from(Span::raw("Press 'Esc' to exit.")),
-            ];
+            if app.show_instructions {
+                let instructions = vec![
+                    Spans::from(Span::raw("Press 's' to add a sine wave.")),
+                    Spans::from(Span::raw("Press 'c' to add a cosine wave.")),
+                    Spans::from(Span::raw("Press 'p' to add a parametric function.")),
+                    Spans::from(Span::raw("Press 'i' to add an inequality.")),
+                    Spans::from(Span::raw("Press 'r' to reset the graph.")),
+                    Spans::from(Span::raw("Use arrows to adjust amplitude/frequency.")),
+                    Spans::from(Span::raw("Press 'h' to show/hide instructions.")),
+                    Spans::from(Span::raw("Press 'Esc' or 'q' to exit.")),
+                ];
 
-            let paragraph = Paragraph::new(instructions)
-                .block(Block::default().borders(Borders::ALL).title("Instructions"));
+                let paragraph = Paragraph::new(instructions)
+                    .block(Block::default().borders(Borders::ALL).title("Instructions"));
 
-            f.render_widget(paragraph, chunks[1]);
+                f.render_widget(paragraph, chunks[1]);
 
-            let settings = vec![
-                Spans::from(Span::raw(format!("Amplitude: {:.2}", app.amplitude))),
-                Spans::from(Span::raw(format!("Frequency: {:.2}", app.frequency))),
-            ];
+                let settings = vec![
+                    Spans::from(Span::raw(format!("Amplitude: {:.2}", app.amplitude))),
+                    Spans::from(Span::raw(format!("Frequency: {:.2}", app.frequency))),
+                ];
 
-            let settings_paragraph = Paragraph::new(settings)
-                .block(Block::default().borders(Borders::ALL).title("Settings"));
+                let settings_paragraph = Paragraph::new(settings)
+                    .block(Block::default().borders(Borders::ALL).title("Settings"));
 
-            f.render_widget(settings_paragraph, chunks[2]);
+                f.render_widget(settings_paragraph, chunks[2]);
+            }
         })?;
 
         if let Event::Key(key) = event::read()? {
             match key.code {
-                KeyCode::Esc => return Ok(()),
+                KeyCode::Esc | KeyCode::Char('q') => return Ok(()),
                 KeyCode::Char('s') => app.add_function("sin(x)".to_string(), FunctionType::Sine),
                 KeyCode::Char('c') => app.add_function("cos(x)".to_string(), FunctionType::Cosine),
                 KeyCode::Char('p') => app.add_function("Parametric: (cos(t), sin(t))".to_string(), FunctionType::Parametric),
                 KeyCode::Char('i') => app.add_function("x > 0".to_string(), FunctionType::Inequality { expr: |x| x > 0.0 }),
                 KeyCode::Char('r') => app.reset_graph(),
+                KeyCode::Char('h') => app.show_instructions = !app.show_instructions,
                 KeyCode::Up => app.increase_amplitude(),
                 KeyCode::Down => app.decrease_amplitude(),
                 KeyCode::Right => app.increase_frequency(),
