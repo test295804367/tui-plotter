@@ -1,10 +1,7 @@
-
-use tui::{
-    layout::Rect,
-    widgets::{Block, Widget},
-    style::{Color, Style},
-    Frame,
-};
+use tui::layout::Rect;
+use tui::widgets::{Block, Widget};
+use tui::style::{Color, Style};
+use tui::buffer::Buffer;
 
 pub struct PlotWidget {
     data: Vec<(f64, f64)>,
@@ -23,10 +20,9 @@ impl PlotWidget {
 }
 
 impl Widget for PlotWidget {
-    fn render(self, area: Rect, buf: &mut tui::buffer::Buffer) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         let PlotWidget { data, block } = self;
 
-        // Render block if it exists
         if let Some(block) = block {
             let inner_area = block.inner(area);
             block.render(area, buf);
@@ -38,10 +34,9 @@ impl Widget for PlotWidget {
 }
 
 impl PlotWidget {
-    fn draw_plot(&self, area: Rect, buf: &mut tui::buffer::Buffer) {
+    fn draw_plot(&self, area: Rect, buf: &mut Buffer) {
         let mut plot = String::new();
 
-        // Plotting the data in ASCII
         for (x, y) in &self.data {
             let x_scaled = ((*x + 5.0) / 10.0 * (area.width as f64)).round() as usize;
             let y_scaled = ((5.0 - y) / 10.0 * (area.height as f64)).round() as usize;
@@ -56,3 +51,4 @@ impl PlotWidget {
         paragraph.render(area, buf);
     }
 }
+

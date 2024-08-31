@@ -1,27 +1,20 @@
-
-use tui::{
-    backend::Backend,
-    layout::{Constraint, Direction, Layout},
-    widgets::{Block, Borders, Paragraph},
-    Frame,
-};
-use crossterm::event::{KeyCode, KeyEvent};
 use crate::tui::plot::PlotWidget;
-use crate::libqalculate::Calculator;
+use crossterm::event::{KeyCode, KeyEvent};
+use tui::layout::{Constraint, Direction, Layout};
+use tui::widgets::{Block, Borders, Paragraph};
+use tui::Frame;
 
 pub struct App {
     pub functions: Vec<String>,
-    pub calculator: Calculator,
     pub current_input: String,
     pub selected_function: usize,
-    pub display_data: Vec<(f64, f64)>, // Holds (x, y) pairs for plotting
+    pub display_data: Vec<(f64, f64)>,
 }
 
 impl App {
     pub fn new() -> App {
         App {
-            functions: vec![],
-            calculator: Calculator::new(),
+            functions: vec!["x^2".to_string(), "sin(x)".to_string()],
             current_input: String::new(),
             selected_function: 0,
             display_data: vec![],
@@ -54,8 +47,11 @@ impl App {
         let mut points = Vec::new();
         for x in -50..=50 {
             let x_val = x as f64 / 10.0;
-            let expr = function.replace("x", &x_val.to_string());
-            let y_val = self.calculator.evaluate(&expr).parse::<f64>().unwrap_or(0.0);
+            let y_val = match function.as_str() {
+                "x^2" => x_val.powi(2),
+                "sin(x)" => x_val.sin(),
+                _ => 0.0,
+            };
             points.push((x_val, y_val));
         }
         points
@@ -92,7 +88,7 @@ impl App {
         }
     }
 
-    pub fn draw<B: Backend>(&self, f: &mut Frame<B>) {
+    pub fn draw<B: tui::backend::Backend>(&self, f: &mut Frame<B>) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Min(1), Constraint::Length(3)].as_ref())
@@ -108,3 +104,4 @@ impl App {
         f.render_widget(input, chunks[1]);
     }
 }
+
