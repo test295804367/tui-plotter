@@ -5,10 +5,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tui = "0.19"
+ratatui = "0.20"  # Change to the latest version
 crossterm = "0.25"
 plotters = "0.3"
-braille-rs = "1.0.0"         # Corrected version
+braille-rs = "1.0.0"
 cc = "1.0"
 
 [build-dependencies]
