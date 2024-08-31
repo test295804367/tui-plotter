@@ -7,11 +7,10 @@ use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
-use ratatui::widgets::{Block, Borders, Chart, Dataset, GraphType, Axis, Paragraph};
+use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Dataset};
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Style};
 use ratatui::text::{Span, Spans};
-use ratatui::symbols;
 use crate::tui::functions::{FunctionType};
 
 fn main() -> Result<(), io::Error> {
@@ -48,8 +47,8 @@ fn run_app(
     loop {
         terminal.draw(|f| {
             let size = f.size();
-            let instructions_height = if app.show_instructions { 10 } else { 0 }; // Increased by 2 lines
-            let settings_height = 4; // Increased by 2 lines
+            let instructions_height = if app.show_instructions { 7 } else { 0 }; // Set instructions height to 7 lines
+            let settings_height = 4;
 
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -63,28 +62,38 @@ fn run_app(
             let block = Block::default().borders(Borders::ALL);
             f.render_widget(block, chunks[0]);
 
-            let datasets: Vec<Dataset<'_>> = app.functions.iter().map(|function| {
-                Dataset::default()
-                    .name(&function.name)
-                    .marker(symbols::Marker::Dot)
-                    .style(Style::default().fg(Color::Cyan))
-                    .graph_type(GraphType::Line)
-                    .data(&function.data)
-            }).collect();
+            if app.show_menu {
+                let items: Vec<ListItem> = app.available_functions.iter().map(|func| {
+                    ListItem::new(Span::raw(func.clone()))
+                }).collect();
 
-            let chart = Chart::new(datasets)
-                .block(Block::default().title("Graph").borders(Borders::ALL))
-                .x_axis(Axis::default().title("X").bounds([-10.0, 10.0]))
-                .y_axis(Axis::default().title("Y").bounds([-10.0, 10.0]));
+                let list = List::new(items)
+                    .block(Block::default().title("Select Function").borders(Borders::ALL))
+                    .highlight_style(Style::default().bg(Color::LightBlue))
+                    .highlight_symbol(">> ");
 
-            f.render_widget(chart, chunks[0]);
+                f.render_stateful_widget(list, chunks[0], &mut app.menu_state);
+            } else {
+                let datasets = app.functions.iter().map(|function| {
+                    Dataset::default()
+                        .name(&function.name)
+                        .marker(ratatui::symbols::Marker::Dot)
+                        .style(Style::default().fg(Color::Cyan))
+                        .graph_type(ratatui::widgets::GraphType::Line)
+                        .data(&function.data)
+                }).collect::<Vec<_>>();
+
+                let chart = ratatui::widgets::Chart::new(datasets)
+                    .block(Block::default().title("Graph").borders(Borders::ALL))
+                    .x_axis(ratatui::widgets::Axis::default().title("X").bounds([-10.0, 10.0]))
+                    .y_axis(ratatui::widgets::Axis::default().title("Y").bounds([-10.0, 10.0]));
+
+                f.render_widget(chart, chunks[0]);
+            }
 
             if app.show_instructions {
                 let instructions = vec![
-                    Spans::from(Span::raw("Press 's' to add a sine wave.")),
-                    Spans::from(Span::raw("Press 'c' to add a cosine wave.")),
-                    Spans::from(Span::raw("Press 'p' to add a parametric function.")),
-                    Spans::from(Span::raw("Press 'i' to add an inequality.")),
+                    Spans::from(Span::raw("Press 'f' to add a function.")),
                     Spans::from(Span::raw("Press 'r' to reset the graph.")),
                     Spans::from(Span::raw("Use arrows to adjust amplitude/frequency.")),
                     Spans::from(Span::raw("Press 'h' to show/hide instructions.")),
@@ -111,16 +120,29 @@ fn run_app(
         if let Event::Key(key) = event::read()? {
             match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => return Ok(()),
-                KeyCode::Char('s') => app.add_function("sin(x)".to_string(), FunctionType::Sine),
-                KeyCode::Char('c') => app.add_function("cos(x)".to_string(), FunctionType::Cosine),
-                KeyCode::Char('p') => app.add_function("Parametric: (cos(t), sin(t))".to_string(), FunctionType::Parametric),
-                KeyCode::Char('i') => app.add_function("x > 0".to_string(), FunctionType::Inequality { expr: |x| x > 0.0 }),
-                KeyCode::Char('r') => app.reset_graph(),
-                KeyCode::Char('h') => app.show_instructions = !app.show_instructions,
-                KeyCode::Up => app.increase_amplitude(),
-                KeyCode::Down => app.decrease_amplitude(),
+                KeyCode::Char('f') => app.toggle_menu(),
+                KeyCode::Up => {
+                    if app.show_menu {
+                        app.menu_up();
+                    } else {
+                        app.increase_amplitude();
+                    }
+                }
+                KeyCode::Down => {
+                    if app.show_menu {
+                        app.menu_down();
+                    } else {
+                        app.decrease_amplitude();
+                    }
+                }
                 KeyCode::Right => app.increase_frequency(),
                 KeyCode::Left => app.decrease_frequency(),
+                KeyCode::Enter => {
+                    if app.show_menu {
+                        app.select_function();
+                    }
+                }
+                KeyCode::Char('r') => app.reset_graph(),
                 _ => app.on_key(key),
             }
         }
